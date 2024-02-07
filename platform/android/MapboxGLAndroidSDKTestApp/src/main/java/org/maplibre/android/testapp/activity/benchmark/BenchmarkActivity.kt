@@ -253,12 +253,12 @@ class BenchmarkActivity : AppCompatActivity() {
                         encodingTimeStore.reset()
 
                         println("Encoding time results $encodingTimeResults")
-                        println("Benchmark ${jsonPayload(inputData.styleNames, fpsResults, encodingTimeResults, renderingTimeResults)}")
 
                         renderingTimeResults.addResult(inputData.styleNames[style], renderingTimeStore)
                         renderingTimeStore.reset()
 
                         println("Rendering time  results $renderingTimeResults")
+                        println("Benchmark ${jsonPayload(inputData.styleNames, fpsResults, encodingTimeResults, renderingTimeResults)}")
 
                         if (style < inputData.styleURLs.size - 1) {  // continue with next style
                             maplibreMap.setStyle(inputData.styleURLs[style + 1])
