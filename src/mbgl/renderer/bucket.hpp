@@ -24,6 +24,8 @@ class RenderTile;
 
 class Bucket {
 public:
+    std::optional<std::thread::id> renderThreadID;
+
     Bucket(const Bucket&) = delete;
     Bucket& operator=(const Bucket&) = delete;
 

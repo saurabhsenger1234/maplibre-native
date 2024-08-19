@@ -7,7 +7,9 @@
 #include <mbgl/renderer/update_parameters.hpp>
 #include <mbgl/text/placement.hpp>
 #include <mbgl/tile/geometry_tile.hpp>
+#include <mbgl/util/logging.hpp>
 #include <mbgl/util/math.hpp>
+
 #include <utility>
 
 namespace mbgl {
@@ -602,12 +604,18 @@ JointPlacement Placement::placeSymbol(const SymbolInstance& symbolInstance, cons
         collisionCircles[&symbolInstance.getTextCollisionFeature(__SOURCE_LOCATION__)] = textBoxes;
     }
 
-    assert(symbolInstance.getCrossTileID(__SOURCE_LOCATION__) != 0);
-
-    if (placements.find(symbolInstance.getCrossTileID(__SOURCE_LOCATION__)) != placements.end()) {
-        // If there's a previous placement with this ID, it comes from a tile that's fading out
-        // Erase it so that the placement result from the non-fading tile supersedes it
-        placements.erase(symbolInstance.getCrossTileID(__SOURCE_LOCATION__));
+    if (symbolInstance.getCrossTileID(__SOURCE_LOCATION__) != 0) {
+        const auto hit = placements.find(symbolInstance.getCrossTileID(__SOURCE_LOCATION__));
+        if (hit != placements.end()) {
+            // If there's a previous placement with this ID, it comes from a tile that's fading out
+            // Erase it so that the placement result from the non-fading tile supersedes it
+            placements.erase(hit);
+        }
+    } else {
+        assert(false);
+        // We skipped some setup, don't use this one or we might run into inconsistencies
+        symbolInstance.forceFail();
+        return kUnplaced;
     }
 
     if (!symbolInstance.check(__SOURCE_LOCATION__)) return kUnplaced;
@@ -895,6 +903,11 @@ bool Placement::updateBucketDynamicVertices(SymbolBucket& bucket, const Transfor
 void Placement::updateBucketOpacities(SymbolBucket& bucket,
                                       const TransformState& state,
                                       std::set<uint32_t>& seenCrossTileIDs) const {
+    if (!bucket.renderThreadID || bucket.renderThreadID != std::this_thread::get_id()) {
+        Log::Error(Event::Crash, __SOURCE_LOCATION__ " Bucket " + util::toString((uint64_t)&bucket) + " expected " + util::toString(*bucket.renderThreadID) + " current " + util::toString(std::this_thread::get_id()));
+        assert(false);
+    }
+
     if (bucket.hasTextData()) bucket.text.opacityVertices.clear();
     if (bucket.hasIconData()) bucket.icon.opacityVertices.clear();
     if (bucket.hasSdfIconData()) bucket.sdfIcon.opacityVertices.clear();
@@ -922,7 +935,7 @@ void Placement::updateBucketOpacities(SymbolBucket& bucket,
             bucket.justReloaded && iconAllowOverlap && (textAllowOverlap || !bucket.hasTextData() || bucket.layout->get<style::TextOptional>()),
             true);
 
-    for (SymbolInstance& symbolInstance : bucket.symbolInstances) {
+    for (const SymbolInstance& symbolInstance : bucket.symbolInstances) {
         if (!symbolInstance.check(__SOURCE_LOCATION__)) continue;
         bool isDuplicate = seenCrossTileIDs.count(symbolInstance.getCrossTileID(__SOURCE_LOCATION__)) > 0;
 

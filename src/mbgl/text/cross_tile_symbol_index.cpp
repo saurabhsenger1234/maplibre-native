@@ -3,6 +3,7 @@
 #include <mbgl/renderer/buckets/symbol_bucket.hpp>
 #include <mbgl/renderer/render_tile.hpp>
 #include <mbgl/tile/tile.hpp>
+#include <mbgl/util/logging.hpp>
 
 namespace mbgl {
 
@@ -18,7 +19,7 @@ TileLayerIndex::TileLayerIndex(OverscaledTileID coord_,
     }
 }
 
-Point<int64_t> TileLayerIndex::getScaledCoordinates(SymbolInstance& symbolInstance,
+Point<int64_t> TileLayerIndex::getScaledCoordinates(const SymbolInstance& symbolInstance,
                                                     const OverscaledTileID& childTileCoord) const {
     // Round anchor positions to roughly 4 pixel grid
     const double roundingFactor = 512.0 / util::EXTENT / 2.0;
@@ -68,7 +69,8 @@ void TileLayerIndex::findMatches(SymbolBucket& bucket,
     }
 }
 
-CrossTileSymbolLayerIndex::CrossTileSymbolLayerIndex(uint32_t& maxCrossTileID_) : maxCrossTileID(maxCrossTileID_) {}
+CrossTileSymbolLayerIndex::CrossTileSymbolLayerIndex(uint32_t& maxCrossTileID_) : maxCrossTileID(maxCrossTileID_) {
+}
 
 /*
  * Sometimes when a user pans across the antimeridian the longitude value gets wrapped.
@@ -114,6 +116,10 @@ bool isInVewport(const mat4& posMatrix, const Point<float>& point) {
 bool CrossTileSymbolLayerIndex::addBucket(const OverscaledTileID& tileID,
                                           const mat4& tileMatrix,
                                           SymbolBucket& bucket) {
+    if (!bucket.renderThreadID || *bucket.renderThreadID != std::this_thread::get_id()) {
+        Log::Error(Event::Crash, __SOURCE_LOCATION__ " wrong thread " + util::toString(std::this_thread::get_id()));
+        assert(false);
+    }
     auto& thisZoomIndexes = indexes[tileID.overscaledZ];
     auto previousIndex = thisZoomIndexes.find(tileID);
     if (previousIndex != thisZoomIndexes.end()) {
@@ -210,6 +216,11 @@ bool CrossTileSymbolLayerIndex::removeStaleBuckets(const std::unordered_set<uint
 CrossTileSymbolIndex::CrossTileSymbolIndex() = default;
 
 auto CrossTileSymbolIndex::addLayer(const RenderLayer& layer, float lng) -> AddLayerResult {
+    if (renderThreadID != std::this_thread::get_id()) {
+        Log::Error(Event::Crash, __SOURCE_LOCATION__ " wrong thread " + util::toString(std::this_thread::get_id()));
+        assert(false);
+    }
+
     auto found = layerIndexes.find(layer.getID());
     if (found == layerIndexes.end()) {
         found = layerIndexes
@@ -250,6 +261,11 @@ auto CrossTileSymbolIndex::addLayer(const RenderLayer& layer, float lng) -> AddL
 }
 
 void CrossTileSymbolIndex::pruneUnusedLayers(const std::set<std::string>& usedLayers) {
+    if (renderThreadID != std::this_thread::get_id()) {
+        Log::Error(Event::Crash, __SOURCE_LOCATION__ " wrong thread " + util::toString(std::this_thread::get_id()));
+        assert(false);
+    }
+
     for (auto it = layerIndexes.begin(); it != layerIndexes.end();) {
         if (usedLayers.find(it->first) == usedLayers.end()) {
             it = layerIndexes.erase(it);
@@ -260,6 +276,11 @@ void CrossTileSymbolIndex::pruneUnusedLayers(const std::set<std::string>& usedLa
 }
 
 void CrossTileSymbolIndex::reset() {
+    if (renderThreadID != std::this_thread::get_id()) {
+        Log::Error(Event::Crash, __SOURCE_LOCATION__ " wrong thread " + util::toString(std::this_thread::get_id()));
+        assert(false);
+    }
+
     layerIndexes.clear();
 }
 

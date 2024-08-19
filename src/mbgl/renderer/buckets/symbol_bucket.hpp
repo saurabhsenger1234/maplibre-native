@@ -104,6 +104,15 @@ public:
     SymbolInstanceReferences getSymbols(const optional<SortKeyRange>& sortKeyRange = nullopt) const;
 
     bool check(std::string_view source) override {
+        if (text.vertices.elements() != text.dynamicVertices.elements() ||
+            text.vertices.elements() != text.opacityVertices.elements() ||
+            icon.vertices.elements() != icon.dynamicVertices.elements() ||
+            icon.vertices.elements() != icon.opacityVertices.elements() ||
+            sdfIcon.vertices.elements() != sdfIcon.dynamicVertices.elements() ||
+            sdfIcon.vertices.elements() != sdfIcon.opacityVertices.elements()) {
+            return false;
+        }
+
         bool success = true;
         for (std::size_t i = 0; i < symbolInstances.size(); ++i) {
             if (!symbolInstances[i].check(std::string(source) + " instance " + util::toString(i))) {

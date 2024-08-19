@@ -226,8 +226,12 @@ bool SymbolInstance::checkIndex(const optional<std::size_t>& index, std::size_t 
     return !isFailed;
 }
 
+void SymbolInstance::forceFail() const {
+    isFailed = true;
+}
+
 // this is just to avoid warnings about the values never being set
-void SymbolInstance::forceFail() {
+void SymbolInstance::forceFailInternal() {
     check01 =
     check02 =
     check03 =

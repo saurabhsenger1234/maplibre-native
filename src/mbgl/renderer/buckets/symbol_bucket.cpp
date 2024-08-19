@@ -6,6 +6,7 @@
 #include <mbgl/text/cross_tile_symbol_index.hpp>
 #include <mbgl/text/glyph_atlas.hpp>
 #include <mbgl/text/placement.hpp>
+#include <mbgl/util/logging.hpp>
 
 #include <utility>
 
@@ -65,6 +66,13 @@ SymbolBucket::SymbolBucket(Immutable<style::SymbolLayoutProperties::PossiblyEval
 SymbolBucket::~SymbolBucket() = default;
 
 void SymbolBucket::upload(gfx::UploadPass& uploadPass) {
+    if (!renderThreadID || *renderThreadID != std::this_thread::get_id()) {
+        Log::Error(Event::Crash, __SOURCE_LOCATION__ " wrong thread " + util::toString(std::this_thread::get_id()));
+        assert(false);
+    }
+    if (!check(__SOURCE_LOCATION__)) {
+        return;
+    }
     if (hasTextData()) {
         if (!staticUploaded) {
             text.indexBuffer = uploadPass.createIndexBuffer(std::move(text.triangles), sortFeaturesByY ? gfx::BufferUsageType::StreamDraw : gfx::BufferUsageType::StaticDraw);
@@ -215,6 +223,10 @@ void addPlacedSymbol(gfx::IndexVector<gfx::Triangles>& triangles, const PlacedSy
 }
 
 void SymbolBucket::sortFeatures(const float angle) {
+    if (!renderThreadID || *renderThreadID != std::this_thread::get_id()) {
+        Log::Error(Event::Crash, __SOURCE_LOCATION__ " wrong thread " + util::toString(std::this_thread::get_id()));
+        assert(false);
+    }
     if (!sortFeaturesByY) {
         return;
     }
@@ -327,6 +339,10 @@ void SymbolBucket::updateVertices(const Placement& placement,
                                   const TransformState& state,
                                   const RenderTile& tile,
                                   std::set<uint32_t>& seenIds) {
+    if (!renderThreadID || *renderThreadID != std::this_thread::get_id()) {
+        Log::Error(Event::Crash, __SOURCE_LOCATION__ " wrong thread " + util::toString(std::this_thread::get_id()));
+        assert(false);
+    }
     if (updateOpacities) {
         placement.updateBucketOpacities(*this, state, seenIds);
         placementChangesUploaded = false;

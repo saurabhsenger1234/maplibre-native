@@ -239,6 +239,11 @@ void GeometryTile::setShowCollisionBoxes(const bool showCollisionBoxes_) {
 }
 
 void GeometryTile::onLayout(std::shared_ptr<LayoutResult> result, const uint64_t resultCorrelationID) {
+    if (renderThreadID != std::this_thread::get_id()) {
+        Log::Error(Event::Crash, __SOURCE_LOCATION__ " wrong thread " + util::toString(std::this_thread::get_id()) + " expected " + util::toString(renderThreadID));
+        assert(false);
+    }
+
     loaded = true;
     renderable = true;
     if (resultCorrelationID == correlationID) {
@@ -251,9 +256,14 @@ void GeometryTile::onLayout(std::shared_ptr<LayoutResult> result, const uint64_t
     }
     
     if (layoutResult) {
-        for (const auto& data : layoutResult->layerRenderData) {
-            if (data.second.bucket) {
-                data.second.bucket->check(__SOURCE_LOCATION__);
+        for (const auto& [key, renderData] : layoutResult->layerRenderData) {
+            if (auto& bucket = renderData.bucket; bucket) {
+                if (bucket->renderThreadID && *bucket->renderThreadID != std::this_thread::get_id()) {
+                    Log::Error(Event::Crash, __SOURCE_LOCATION__ " already has thread " + util::toString(*bucket->renderThreadID) + " current " + util::toString(std::this_thread::get_id()));
+                    assert(false);
+                }
+                bucket->renderThreadID = std::this_thread::get_id();
+                bucket->check(__SOURCE_LOCATION__);
             }
         }
     }

@@ -177,10 +177,12 @@ public:
 
     static constexpr uint32_t invalidCrossTileID() { return std::numeric_limits<uint32_t>::max(); }
 
+    void forceFail() const;
+
 protected:
     bool check(std::size_t v, int n, std::string_view source) const;
     bool checkKey() const;
-    void forceFail();  // this is just to avoid warnings about the values never being set
+    void forceFailInternal();  // this is just to avoid warnings about the values never being set
 
 private:
     std::shared_ptr<SymbolInstanceSharedData> sharedData;
