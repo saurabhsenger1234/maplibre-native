@@ -21,6 +21,9 @@ public:
 
     void swap();
 
+    void setSwapBehavior(SwapBehaviour swapBehaviour);
+private:
+    SwapBehaviour swapBehaviour = SwapBehaviour::NoFlush;
     // mbgl::gfx::RendererBackend implementation
 public:
     mbgl::gfx::Renderable& getDefaultRenderable() override { return *this; }

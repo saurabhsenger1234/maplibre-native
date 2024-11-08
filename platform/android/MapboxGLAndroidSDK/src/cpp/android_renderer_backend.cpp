@@ -54,7 +54,9 @@ PremultipliedImage AndroidRendererBackend::readFramebuffer() {
 }
 
 void AndroidRendererBackend::swap() {
-    static_cast<gl::Context&>(getContext()).finish();
+    if (swapBehaviour == SwapBehaviour::Flush) {
+        static_cast<gl::Context&>(getContext()).finish();
+    }
 }
 
 void AndroidRendererBackend::updateAssumedState() {
@@ -66,6 +68,10 @@ void AndroidRendererBackend::markContextLost() {
     if (context) {
         getContext<gl::Context>().setCleanupOnDestruction(false);
     }
+}
+
+void AndroidRendererBackend::setSwapBehavior(SwapBehaviour swapBehaviour_) {
+    swapBehaviour = swapBehaviour_;
 }
 
 } // namespace android

@@ -20,7 +20,7 @@ std::unique_ptr<style::Layer> FillLayerFactory::createLayer(const std::string& i
 std::unique_ptr<Layout> FillLayerFactory::createLayout(
     const LayoutParameters& parameters,
     std::unique_ptr<GeometryTileLayer> layer,
-    const std::vector<Immutable<style::LayerProperties>>& group) noexcept {
+    const std::vector<Immutable<style::LayerProperties>>& group) {
     using namespace style;
     using LayoutTypeUnsorted = PatternLayout<FillBucket, FillLayerProperties, FillPattern, FillLayoutProperties>;
     using LayoutTypeSorted =

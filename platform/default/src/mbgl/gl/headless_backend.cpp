@@ -111,8 +111,8 @@ namespace gfx {
 
 template <>
 std::unique_ptr<gfx::HeadlessBackend> Backend::Create<gfx::Backend::Type::OpenGL>(
-    const Size size, gfx::HeadlessBackend::SwapBehaviour swapBehavior, const gfx::ContextMode contextMode) {
-    return std::make_unique<gl::HeadlessBackend>(size, swapBehavior, contextMode);
+    const Size size, gfx::Renderable::SwapBehaviour swapBehavior, const gfx::ContextMode contextMode) {
+        return std::make_unique<gl::HeadlessBackend>(size, swapBehavior, contextMode);
 }
 
 } // namespace gfx

@@ -102,6 +102,10 @@ public abstract class MapRenderer implements MapRendererScheduler {
     }
   }
 
+  public void setSwapBehaviorFlush(boolean flush) {
+    nativeSetSwapBehaviorFlush(flush);
+  }
+
   /**
    * May be called from any thread.
    * <p>
@@ -134,11 +138,13 @@ public abstract class MapRenderer implements MapRendererScheduler {
 
   private native void nativeRender();
 
+  private native void nativeSetSwapBehaviorFlush(boolean flush);
+
   private long timeElapsed;
 
   private void updateFps() {
-    long currentTime = System.nanoTime();
-    if (timeElapsed > 0) {
+   long currentTime = System.nanoTime();
+   if (timeElapsed > 0) {
       double fps = 1E9 / ((currentTime - timeElapsed));
       onFpsChangedListener.onFpsChanged(fps);
     }

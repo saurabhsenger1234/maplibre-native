@@ -21,7 +21,7 @@ std::unique_ptr<style::Layer> CircleLayerFactory::createLayer(const std::string&
 std::unique_ptr<Layout> CircleLayerFactory::createLayout(
     const LayoutParameters& parameters,
     std::unique_ptr<GeometryTileLayer> layer,
-    const std::vector<Immutable<style::LayerProperties>>& group) noexcept {
+    const std::vector<Immutable<style::LayerProperties>>& group) {
     return std::unique_ptr<Layout>(new (std::nothrow)
                                        CircleLayout(parameters.bucketParameters, group, std::move(layer)));
 }
